@@ -12,7 +12,8 @@ io.on('connection', function (socket) {
 	socket.on('message', function (message) {
 		console.log('Message received: ' + message.text);
 
-		socket.broadcast.emit('message', message); //sends to everyone but sender
+		//socket.broadcast.emit('message', message); //sends to everyone but sender
+		io.emit('message', message); //sends to everyone including sender
 	});
 
 	socket.emit('message', {
