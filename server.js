@@ -7,15 +7,29 @@ var io = require('socket.io')(http);
 
 app.use(express.static(__dirname + '/public'));
 
+var clientInfo = {};
+
 io.on('connection', function (socket) {
 	console.log('User connected via socket.io!');
+
+	socket.on('joinRoom', function (req) {
+		clientInfo[socket.id] = req;
+		socket.join(req.room);
+		socket.broadcast.to(req.room).emit('message', {
+			name: 'System',
+			text: req.name + ' has joined!',
+			timestamp: moment().valueOf()
+		});
+	});
 
 	socket.on('message', function (message) {
 		console.log('Message received: ' + message.text);
 
 		message.timestamp = moment().valueOf(); //returns JavaScript timestamp (milliseconds)
 		//socket.broadcast.emit('message', message); //sends to everyone but sender
-		io.emit('message', message); //sends to everyone including sender
+		io.to(clientInfo[socket.id].room).emit('message', message); //sends to everyone including sender 
+		// clientInfo[socket.id].room passes a dynamic id from socket. 
+		//This in turn is used to send messages to users in that room only
 	});
 
 	// timestamp property = JavaScript timestamp (milliseconds)
